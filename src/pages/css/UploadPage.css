@@ -1,0 +1,34 @@
+.upload__container{
+    /* background-color: aliceblue; */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 100vh;
+    justify-content: space-evenly;
+}
+
+.upload__card{
+    /* width: fit-content; */
+    align-self: center;
+    width: max-content; 
+    align-items: center;
+    box-shadow: 5px 6px #888888 !important;
+}
+
+.result__button{
+    width: fit-content;
+    align-self: center;
+    border-color: whitesmoke !important;
+    color: aliceblue !important;
+}
+
+.upload__button{
+    width: fit-content;
+    align-self: center;
+    margin-bottom: 15px !important;
+    
+}
+.upload__image{
+    max-width: 100% !important;
+    max-height: 320px !important;
+}

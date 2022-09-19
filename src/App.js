@@ -1,24 +1,17 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import React from "react";
+import UploadPage from './pages/UploadPage';
 
 function App() {
+  // const [result, setResult] = useState(false);
+  const result = false;
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {result? (
+        <h1>ResultPage</h1>
+      ):(
+        <UploadPage/>
+      )}
     </div>
   );
 }
