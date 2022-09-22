@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as tf from '@tensorflow/tfjs';
 import { MODEL_CLASSES } from '../model/classes.js';
 import Card from '@mui/material/Card';
