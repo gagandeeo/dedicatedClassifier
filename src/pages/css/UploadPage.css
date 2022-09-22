@@ -8,7 +8,7 @@
 }
 
 .upload__card{
-    /* width: fit-content; */
+    width: fit-content;
     align-self: center;
     width: max-content; 
     align-items: center;
@@ -16,6 +16,7 @@
 }
 
 .result__button{
+    
     width: fit-content;
     align-self: center;
     border-color: whitesmoke !important;
@@ -31,4 +32,15 @@
 .upload__image{
     max-width: 100% !important;
     max-height: 320px !important;
+}
+
+
+.result__container{
+    width: 80% !important;
+    align-self: center;
+}
+
+
+.MuiAlert-message.css-1pxa9xg-MuiAlert-message{
+    text-align: left !important;   
 }
