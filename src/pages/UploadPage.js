@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import * as tf from '@tensorflow/tfjs';
 import { MODEL_CLASSES } from '../model/classes.js';
 import Card from '@mui/material/Card';
@@ -10,6 +10,9 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import "./css/UploadPage.css";
 import { openDB } from 'idb';
 import { Alert, Collapse } from '@mui/material';
+// import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
+
 
 const MODEL_PATH = "/model/model.json";
 const IMAGE_SIZE = 224;
@@ -25,6 +28,7 @@ const UploadPage = () => {
     const [model, setModel] = useState(null);
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
+    const cropper = useRef(null)
 
      useEffect(() => {
         const fetchModel = async() => {
@@ -88,21 +92,20 @@ const UploadPage = () => {
         return topClassesAndProbs;
     }
 
-    const convertToTensor = async() => {
-        const img = new Image()
-        img.src = file
-        await img.decode()
+    const convertToTensor = () => {
+        let img = document.getElementById('image_up')
         return tf.tidy(()=> tf.browser.fromPixels(img).toFloat());
     }
 
     const processImage = async () => {
-        const tensor = await convertToTensor()
+        const tensor =  convertToTensor()
         const resizeImage = tf.image.resizeBilinear(tensor, [IMAGE_SIZE, IMAGE_SIZE]);
         const imageData = tf.tidy(() => resizeImage.expandDims(0).toFloat().div(127).sub(1));
         return imageData;
     }
 
     const handlePredict = async () => {
+
         const imageData = await processImage()
         const probabilities =  await model.predict(imageData).data();
         const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
@@ -148,6 +151,15 @@ const UploadPage = () => {
             <>
             <CardContent style={{width:200}}>
                 <img id="image_up" alt="" className="upload__image" src={file} />
+                
+                 {/* <Cropper
+                 ref={cropper}
+                 src={file}
+                 className="upload__image"
+                 guides={true}
+                //  aspectRatio={1 / 1}
+                //  viewMode={2}
+                 /> */}
             </CardContent>
             <IconButton size='small'className='upload__button' color="primary" aria-label="upload picture" component="label">
                     <input hidden accept="image/*" type="file" onChange={handleImageChange} />
