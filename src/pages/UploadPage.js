@@ -34,7 +34,7 @@ const UploadPage = () => {
                     setModel(await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY))
                     try{
                         const db = await openDB(INDEXEDDB_DB, 1, );
-                        const item = await db.transaction(INDEXEDDB_STORE)
+                        await db.transaction(INDEXEDDB_STORE)
                                             .objectStore(INDEXEDDB_STORE)
                                             .get(INDEXEDDB_KEY);
                     }
@@ -147,7 +147,7 @@ const UploadPage = () => {
             :
             <>
             <CardContent style={{width:200}}>
-                <img id="image_up" className="upload__image" src={file} />
+                <img id="image_up" alt="" className="upload__image" src={file} />
             </CardContent>
             <IconButton size='small'className='upload__button' color="primary" aria-label="upload picture" component="label">
                     <input hidden accept="image/*" type="file" onChange={handleImageChange} />
