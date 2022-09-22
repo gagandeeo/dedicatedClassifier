@@ -28,7 +28,7 @@ const UploadPage = () => {
     const [model, setModel] = useState(null);
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
-    const cropper = useRef(null)
+    // const cropper = useRef(null)
 
      useEffect(() => {
         const fetchModel = async() => {
