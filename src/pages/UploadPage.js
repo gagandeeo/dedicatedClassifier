@@ -50,12 +50,13 @@ const UploadPage = () => {
                 catch(error){
                     console.log('Not found models, Loading and saving...')
                     console.log(error);
-                    const model = await tf.loadLayersModel(MODEL_PATH);
-                    setModel(model);
-                    await model.save('indexeddb://' + INDEXEDDB_KEY);
+                    const model_ = await tf.loadLayersModel(MODEL_PATH);
+                    setModel(model_);
+                    await model_.save('indexeddb://' + INDEXEDDB_KEY);
                 }
             }else{
-                setModel(await tf.loadLayersModel(MODEL_PATH))
+                const model_ = await tf.loadLayersModel(MODEL_PATH);
+                setModel(model_)
             }
         }
         fetchModel().catch(console.error)
