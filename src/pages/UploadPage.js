@@ -9,10 +9,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import "./css/UploadPage.css";
 import { openDB } from 'idb';
-import { Alert, Collapse } from '@mui/material';
-// import Cropper from 'react-cropper';
-import 'cropperjs/dist/cropper.css';
+import { Alert, Collapse, Switch } from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
+// import Switch from '@mui/material/Switch';
 
+// Improve spacing between switchmode and result button.
 
 const MODEL_PATH = "/model/model.json";
 const IMAGE_SIZE = 224;
@@ -28,7 +29,8 @@ const UploadPage = () => {
     const [model, setModel] = useState(null);
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
-    // const cropper = useRef(null)
+    // switchMode state
+    const [switchCache, setSwitchCache] = useState(true)
 
      useEffect(() => {
         const fetchModel = async() => {
@@ -105,41 +107,54 @@ const UploadPage = () => {
         return imageData;
     }
 
-    const handlePredict = async () => {
-
+    const predictUsingCache = async() => {
         const imageData = await processImage()
         const probabilities =  await model.predict(imageData).data();
         const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
         console.log(preds);
         const list = []
         for(const key in preds){
-
            list.push(<li key={key}>{preds[key]['className'].split(',')[0] + " " + preds[key]['probability'] + "%"}</li>)
         }
-        setResults(list)
+        setResults(list);
         setOpen(true);
     }
 
+    const handlePredict = async () => {
+
+        // Switching Functions
+        if(switchCache){
+            // Using cache
+            predictUsingCache()
+        }else{
+            // Using server
+            console.log('[Using Server...]');
+        }
+    }
+
   return (
+    // switchMode button
+    // <>
+    
     <div className='upload__container'>
-            <Collapse className='result__container' in={open}>
-                <Alert action={
-                    <IconButton
-                        color="inherit"
-                        size="small"
-                        onClick={() => {
-                            setOpen(false);
-                        }}
-                    >
-                      <CloseIcon fontSize='inherit' />
-                    </IconButton>
-                }
-            >   
-                    <div className="result__div">
-                        {results}
-                    </div>
-            </Alert>
-            </Collapse>
+        <Collapse className='result__container' in={open}>
+            <Alert action={
+                <IconButton
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                        setOpen(false);
+                    }}
+                >
+                    <CloseIcon fontSize='inherit' />
+                </IconButton>
+            }
+        >   
+                <div className="result__div">
+                    {results}
+                </div>
+        </Alert>
+        </Collapse>
         <Card className='upload__card'>
             {!file?
             <IconButton size='large' color="primary" aria-label="upload picture" component="label">
@@ -152,15 +167,6 @@ const UploadPage = () => {
             <>
             <CardContent style={{width:200}}>
                 <img id="image_up" alt="" className="upload__image" src={file} />
-                
-                 {/* <Cropper
-                 ref={cropper}
-                 src={file}
-                 className="upload__image"
-                 guides={true}
-                //  aspectRatio={1 / 1}
-                //  viewMode={2}
-                 /> */}
             </CardContent>
             <IconButton size='small'className='upload__button' color="primary" aria-label="upload picture" component="label">
                     <input hidden accept="image/*" type="file" onChange={handleImageChange} />
@@ -168,7 +174,17 @@ const UploadPage = () => {
             </IconButton>
             </>}
         </Card>
-        <Button className="result__button"variant="outlined" onClick={handlePredict}>Predict</Button>
+        <div className='control__div'>
+            <div className='switch__div' >
+                <FormControlLabel  control={
+                    <Switch
+                    checked={switchCache}
+                    onChange={()=>setSwitchCache(!switchCache)}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    />} label="Cache Mode" />
+            </div>
+            <Button className="result__button"variant="outlined" onClick={handlePredict}>Predict</Button>
+        </div>
     </div>
   )
 }

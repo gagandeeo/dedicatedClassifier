@@ -1,8 +1,6 @@
 .upload__container{
-    /* background-color: aliceblue; */
     display: flex;
     flex-direction: column;
-    flex: 1;
     min-height: 100vh;
     justify-content: space-evenly;
 }
@@ -13,6 +11,7 @@
     width: max-content; 
     align-items: center;
     box-shadow: 5px 6px #888888 !important;
+    margin: 20;
 }
 
 .result__button{
@@ -43,4 +42,14 @@
 
 .MuiAlert-message.css-1pxa9xg-MuiAlert-message{
     text-align: left !important;   
+}
+
+.switchMode__button{
+    color: aliceblue !important;
+}
+.switch__div{
+    align-self: flex-end;
+    color: aliceblue;
+    flex: 0.3;
+    bottom: 10;
 }
