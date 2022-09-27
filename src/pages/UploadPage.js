@@ -11,9 +11,6 @@ import "./css/UploadPage.css";
 import { openDB } from 'idb';
 import { Alert, Collapse, Switch } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
-// import Switch from '@mui/material/Switch';
-
-// Improve spacing between switchmode and result button.
 
 const MODEL_PATH = "/model/model.json";
 const IMAGE_SIZE = 224;
@@ -66,7 +63,7 @@ const UploadPage = () => {
 
 
     const handleImageChange = (e) => {
-        setFile(URL.createObjectURL(e.target.files[0]))
+        setFile(e.target.files[0])
     }
 
     const getTopKClasses = (values, topK) => {
@@ -85,14 +82,11 @@ const UploadPage = () => {
             topkIndices[i] = valuesAndIndices[i].index;
         }
 
-        const topClassesAndProbs = [];
+        const res = {};
         for (let i = 0; i < topkIndices.length; i++) {
-            topClassesAndProbs.push({
-                className: MODEL_CLASSES[topkIndices[i]],
-                probability: (topkValues[i] * 100).toFixed(2)
-            });
+            res[MODEL_CLASSES[topkIndices[i]].split(',')[0]] = topkValues[i]
         }
-        return topClassesAndProbs;
+        return res;
     }
 
     const convertToTensor = () => {
@@ -107,17 +101,20 @@ const UploadPage = () => {
         return imageData;
     }
 
+    const showResults = (preds) => {
+        const list = []
+        for(const key in preds){
+           list.push(<li key={key}>{key + " " + (preds[key]*100).toFixed(2) + "%"}</li>)
+        }
+        setResults(list);
+        setOpen(true);
+    }
+
     const predictUsingCache = async() => {
         const imageData = await processImage()
         const probabilities =  await model.predict(imageData).data();
         const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
-        console.log(preds);
-        const list = []
-        for(const key in preds){
-           list.push(<li key={key}>{preds[key]['className'].split(',')[0] + " " + preds[key]['probability'] + "%"}</li>)
-        }
-        setResults(list);
-        setOpen(true);
+        showResults(preds)
     }
 
     const handlePredict = async () => {
@@ -127,8 +124,15 @@ const UploadPage = () => {
             // Using cache
             predictUsingCache()
         }else{
-            // Using server
-            console.log('[Using Server...]');
+            const formData = new FormData()
+            formData.append('file', file);
+            const options = {
+                method : 'POST',
+                body: formData,
+            }
+            fetch("http://localhost:8000/uploadfile/",options)
+                .then((res) => res.json())
+                .then((result) => showResults(result.result))
         }
     }
 
@@ -166,7 +170,7 @@ const UploadPage = () => {
             :
             <>
             <CardContent style={{width:200}}>
-                <img id="image_up" alt="" className="upload__image" src={file} />
+                <img id="image_up" alt="" className="upload__image" src={URL.createObjectURL(file)} />
             </CardContent>
             <IconButton size='small'className='upload__button' color="primary" aria-label="upload picture" component="label">
                     <input hidden accept="image/*" type="file" onChange={handleImageChange} />
