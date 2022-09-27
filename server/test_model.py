@@ -16,8 +16,7 @@ def prepare_image(image_data):
 def predict(img, model):
     predictions = np.array(model.predict(img))
     results = np.array(applications.imagenet_utils.decode_predictions(predictions))
-    res_3 = np.argpartition(predictions[0], -3)[-3:]
-    return str(results)
+    return results
 
     
     
