@@ -1,92 +1,84 @@
 import React, { useEffect, useState } from 'react'
 import * as tf from '@tensorflow/tfjs';
+
 import { MODEL_CLASSES } from '../model/classes.js';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import "./css/UploadPage.css";
-import { openDB } from 'idb';
-import { Alert, Collapse, Switch } from '@mui/material';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import UploadCard from '../components/UploadCard.js';
+import Controller from '../components/Controller.js';
+import ResultContainer from '../components/ResultContainer.js';
+import './css/UploadPage.css'
 
-
-const MODEL_PATH = "/model/model.json";
-const IMAGE_SIZE = 224;
-const TOPK_PREDICTIONS = 5;
-
-const INDEXEDDB_DB = 'tensorflowjs';
-const INDEXEDDB_STORE = 'model_info_store';
-const INDEXEDDB_KEY = 'web-model';
+// Model utilities
+const IMAGE_SIZE = Number(process.env.REACT_APP_IMAGE_SIZE)
 
 const UploadPage = () => {
 
+    // states of files and models
     const [file, setFile] = useState(null);
     const [model, setModel] = useState(null);
+
+    // states for handling results
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    // switchMode state
-    const [switchCache, setSwitchCache] = useState(true)
     const [timePer, setTimePer] = useState(null);
+
+    // state for controlling prediction mode
+    const [switchCache, setSwitchCache] = useState(true)
 
      useEffect(() => {
         const fetchModel = async() => {
-            // check indexedDB
+            // check indexedDB support for browser
             if(('indexedDB' in window)){
+                // Get model from stored indexed
                 try{
-                    const model_ = await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY)
+                    const model_ = await tf.loadLayersModel('indexeddb://' + process.env.REACT_APP_INDEXEDDB_KEY)
                     
                     // warmup model
                     let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
                     prediction.dispose();
 
+                    // save model
                     setModel(model_)
-                    try{
-                        const db = await openDB(INDEXEDDB_DB, 1, );
-                        await db.transaction(INDEXEDDB_STORE)
-                                            .objectStore(INDEXEDDB_STORE)
-                                            .get(INDEXEDDB_KEY);
-                    }
-                    catch(error){
-                        console.warn(error);
-                        console.warn('Couldnot retrieve when model was saved')
-                    }
                 }
                 catch(error){
-                    console.log('Not found models, Loading and saving...')
-                    const model_ = await tf.loadLayersModel(MODEL_PATH);
+                    // If error here, assume that no models are saved hence save it to indexedDB
+                    window.alert('Loading and Saving Model...')
+                    const model_ = await tf.loadLayersModel(process.env.REACT_APP_MODEL_PATH);
                     
                     // warmup model
                     let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
                     prediction.dispose();
                     
+                    // save model
                     setModel(model_);
-                    await model_.save('indexeddb://' + INDEXEDDB_KEY);
+                    await model_.save('indexeddb://' + process.env.REACT_APP_INDEXEDDB_KEY);
                 }
             }else{
-                const model_ = await tf.loadLayersModel(MODEL_PATH);
+                // If error here, assume browser doesnot support indexedDB, hence load locally
+                const model_ = await tf.loadLayersModel(process.env.REACT_APP_MODEL_PATH);
                 
                 // warmup model
                 let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
                 prediction.dispose();
                 
+                // save model
                 setModel(model_)
             }
         }
+
+        // Catch error for development mode only!!
         fetchModel().catch(console.error)
     },[])
 
-
+    
     const handleImageChange = (e) => {
+        // Function for handling image upload
         setFile(e.target.files[0])
     }
 
     const getTopKClasses = (values, topK) => {
+        // Function for selecting top 5 classes
+        // Note: This function is called only in cache mode/client mode
         const valuesAndIndices = [];
             for (let i = 0; i < values.length; i++) {
                 valuesAndIndices.push({value: values[i], index: i});
@@ -109,19 +101,8 @@ const UploadPage = () => {
         return res;
     }
 
-    const convertToTensor = () => {
-        let img = document.getElementById('image_up')
-        return tf.tidy(()=> tf.browser.fromPixels(img).toFloat());
-    }
-
-    const processImage = async () => {
-        const tensor =  convertToTensor()
-        const resizeImage = tf.image.resizeBilinear(tensor, [IMAGE_SIZE, IMAGE_SIZE]);
-        const imageData = tf.tidy(() => resizeImage.expandDims(0).toFloat().div(127).sub(1));
-        return imageData;
-    }
-
     const showResults = (preds) => {
+        // Function for converting results to display format.
         const list = []
         for(const key in preds){
            list.push(<li key={key}>{key + " " + (preds[key]*100).toFixed(2) + "%"}</li>)
@@ -132,100 +113,106 @@ const UploadPage = () => {
     }
 
     const predictUsingCache = async() => {
-        const timeBegin = performance.now()
+        // Function for predicting image using Cache Mode.
+        try{
+            // Start performance measurement
+            const timeBegin = performance.now()
+            
+            // Convert to tensor
+            const img = document.getElementById('image_up')
+            const tensor = tf.tidy(()=> tf.browser.fromPixels(img).toFloat());
+            // Process Image
+            const resizeImage = tf.image.resizeBilinear(tensor, [IMAGE_SIZE, IMAGE_SIZE]);
+            const imageData = tf.tidy(() => resizeImage.expandDims(0).toFloat().div(127).sub(1));
+            // Predict
+            const probabilities =  await model.predict(imageData).data();
+            const preds =  getTopKClasses(probabilities, process.env.REACT_APP_TOPK_PREDICTIONS);
+            
+            setTimePer(performance.now() - timeBegin)
+            showResults(preds)
+        }catch{
+            // If error here, assume something internal went wrong in above prediction block.
+            window.alert('Something went wrong! pleaser try again')
 
-        const imageData = await processImage()
-        const probabilities =  await model.predict(imageData).data();
-        const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
+            // sanitize all states
+            setLoading(false)
+            setResults(false)
+            setOpen(false)
+            setTimePer(false)
+        }
         
-        setTimePer(performance.now() - timeBegin)
-        showResults(preds)
     }
 
     const handlePredict = () => {
-        // Switching Functions
+        // Function for handling predictions according to modes
+        if(file){
+            // Image upload verified
             if(switchCache){
+                // Using cache mode
                 predictUsingCache()
             }else{
+                // using server mode
+
+                // Start performance measurement
                 const timeBegin = performance.now()
+
+                // Create formData with image appended
                 const formData = new FormData()
                 formData.append('file', file);
+
+                // Define post body
                 const options = {
                     method : 'POST',
                     body: formData,
                 }
-                fetch("http://localhost:8000/uploadfile/",options)
+
+                // Send request and conclude with results
+                fetch(process.env.REACT_APP_SEREVR_URL,options)
                     .then((res) => res.json())
+                    .catch(() => {
+                        // sanitize all states
+                        setLoading(false)
+                        setResults(false)
+                        setOpen(false)
+                        setTimePer(false)
+                        window.alert('Something went wrong! pleaser try again')
+                    })
                     .then((result) => {
                         setTimePer(performance.now() - timeBegin)
                         showResults(result.result)
                         setLoading(false)
-                    })
+                })
+                
             }
+        }else{
+            // If error here, assume image wasn't uploaded
+            window.alert('Please Upload Image')
+            setLoading(false)
+        }
     }
 
   return (
     <div className='upload__container'>
-        <Collapse className='result__container' in={open}>
-             <Alert action={
-                 <IconButton
-                     color="inherit"
-                     size="small"
-                     onClick={() => {
-                         setOpen(false);
-                     }}
-                 >
-                     <CloseIcon fontSize='inherit' />
-                 </IconButton>
-             }
-         >   
-                 <div className="result__div">
-                    <div>
-                     {results}
-                    </div>
-                    <h2 style={{ alignSelf: 'center', marginLeft: 80 }} >
-                    <HourglassBottomIcon fontSize='small' style={{color: 'black', top: 20, marginRight: 10}} />
-                     {timePer?.toFixed(2)} ms
-                    </h2>
-                 </div>
-         </Alert>
-         </Collapse>
-        <Card className='upload__card'>
-            {!file?
-            <IconButton size='large' color="primary" aria-label="upload picture" component="label">
-                <CardContent style={{width:100}} > 
-                    <input hidden accept="image/*" type="file" onChange={handleImageChange} />
-                    <PhotoCamera />
-                </CardContent>
-            </IconButton>
-            :
-            <>
-            <CardContent style={{width:200}}>
-                <img id="image_up" alt="" className="upload__image" src={URL.createObjectURL(file)} />
-            </CardContent>
-            <IconButton size='small'className='upload__button' color="primary" aria-label="upload picture" component="label">
-                    <input hidden accept="image/*" type="file" onChange={handleImageChange} />
-                    <PhotoCamera />
-            </IconButton>
-            </>}
-        </Card>
-         <div className='control__div'>
-             <div className='switch__div' >
-                 <FormControlLabel  control={
-                     <Switch
-                     checked={switchCache}
-                     onChange={()=>setSwitchCache(!switchCache)}
-                     inputProps={{ 'aria-label': 'controlled' }}
-                     />} label="Cache Mode" />
-             </div>
-             <Button className="result__button"variant="outlined" onClick={()=>{
-                setLoading(true);
-                handlePredict();
-             }}>
-                Predict
-            </Button>
-            {loading? <PendingOutlinedIcon fontSize='medium' className="pending__icon" />:null }
-         </div>
+        {/* Result */}
+        <ResultContainer 
+            open={open}
+            setOpen={setOpen}
+            results={results}
+            timePer={timePer} 
+        />
+         {/* Upload Card */}
+        <UploadCard 
+            file={file}
+            handleImageChange={handleImageChange}
+        />
+        {/* Controller */}
+         <Controller 
+            switchCache={switchCache}
+            setSwitchCache={setSwitchCache}
+            loading={loading}
+            handlePredict={handlePredict}
+            setLoading = {setLoading}
+        />
     </div>
   )
 }

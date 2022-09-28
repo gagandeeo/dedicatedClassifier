@@ -1,0 +1,63 @@
+.result__container{
+    max-width: 100% !important;
+    min-height: 70% !important;
+    align-self: center;
+}
+
+.result__div{
+    display: flex;
+    font-size: medium;
+    font-weight: bold;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.upload__button{
+    width: fit-content;
+    align-self: center;
+    margin-bottom: 15px !important;
+    
+}
+.upload__image{
+    max-width: 100% !important;
+    max-height: 320px !important;
+}
+
+.upload__card{
+    width: fit-content;
+    align-self: center;
+    width: max-content; 
+    align-items: center;
+    box-shadow: 5px 6px #888888 !important;
+    margin: 20;
+}
+.result__button{
+    color: #888888 !important;
+    width: fit-content;
+    align-self: center;
+    border-color: whitesmoke !important;
+    top: 2rem;
+}
+
+.result__button:hover{
+    color: aliceblue !important;
+    background-color: #888888 !important;
+}
+
+.switchMode__button{
+    color: aliceblue !important;
+}
+
+.switch__div{
+    color: aliceblue;
+}
+
+.control__div{
+    max-width: fit-content;
+    padding: 5%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pending__icon{
+    color: aliceblue !important;
+}
