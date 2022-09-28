@@ -1,8 +1,11 @@
 optional
 
-<!-- Improve spacing between switchmode and result button. -->
+<!-- Warmup model on load -->
+
+<!-- Improve spacing between switchmode and result button. XXXXXXX --> 
 <!-- Add way to test inference speed b/w modes -->
 <!-- Add response time to result section -->
+<!-- Add loader XXXXXXX-->
 
 <!-- Document the code -->
 <!-- Add comments in code -->

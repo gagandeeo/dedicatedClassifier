@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    align-items: center;
     justify-content: space-evenly;
 }
 
@@ -15,11 +16,16 @@
 }
 
 .result__button{
-    
+    color: #888888 !important;
     width: fit-content;
     align-self: center;
     border-color: whitesmoke !important;
+    top: 2rem;
+}
+
+.result__button:hover{
     color: aliceblue !important;
+    background-color: #888888 !important;
 }
 
 .upload__button{
@@ -47,9 +53,18 @@
 .switchMode__button{
     color: aliceblue !important;
 }
+
 .switch__div{
-    align-self: flex-end;
     color: aliceblue;
-    flex: 0.3;
-    bottom: 10;
+}
+
+.control__div{
+    max-width: fit-content;
+    padding: 5%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pending__icon{
+    color: aliceblue !important;
 }

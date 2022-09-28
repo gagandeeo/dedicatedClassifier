@@ -11,6 +11,8 @@ import "./css/UploadPage.css";
 import { openDB } from 'idb';
 import { Alert, Collapse, Switch } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
+// import { performance } from 'node/perf_hooks'
 
 const MODEL_PATH = "/model/model.json";
 const IMAGE_SIZE = 224;
@@ -26,6 +28,7 @@ const UploadPage = () => {
     const [model, setModel] = useState(null);
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     // switchMode state
     const [switchCache, setSwitchCache] = useState(true)
 
@@ -48,7 +51,6 @@ const UploadPage = () => {
                 }
                 catch(error){
                     console.log('Not found models, Loading and saving...')
-                    console.log(error);
                     const model_ = await tf.loadLayersModel(MODEL_PATH);
                     setModel(model_);
                     await model_.save('indexeddb://' + INDEXEDDB_KEY);
@@ -108,57 +110,65 @@ const UploadPage = () => {
         }
         setResults(list);
         setOpen(true);
+        setLoading(false);
     }
 
     const predictUsingCache = async() => {
+        // const timeBegin = performance.now()
+
         const imageData = await processImage()
         const probabilities =  await model.predict(imageData).data();
         const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
+        
+        // const timeEnd = performance.now()
+        // console.log(timeEnd - timeBegin);
+
         showResults(preds)
     }
 
-    const handlePredict = async () => {
-
+    const handlePredict = () => {
         // Switching Functions
-        if(switchCache){
-            // Using cache
-            predictUsingCache()
-        }else{
-            const formData = new FormData()
-            formData.append('file', file);
-            const options = {
-                method : 'POST',
-                body: formData,
+            if(switchCache){
+                predictUsingCache()
+            }else{
+                // const timeBegin = performance.now()
+                const formData = new FormData()
+                formData.append('file', file);
+                const options = {
+                    method : 'POST',
+                    body: formData,
+                }
+                fetch("http://localhost:8000/uploadfile/",options)
+                    .then((res) => res.json())
+                    .then((result) => {
+                        showResults(result.result)
+                        setLoading(false)
+                    // const timeEnd = performance.now()
+                    // console.log(timeEnd - timeBegin);
+                    })
             }
-            fetch("http://localhost:8000/uploadfile/",options)
-                .then((res) => res.json())
-                .then((result) => showResults(result.result))
-        }
     }
 
   return (
-    // switchMode button
-    // <>
-    
     <div className='upload__container'>
         <Collapse className='result__container' in={open}>
-            <Alert action={
-                <IconButton
-                    color="inherit"
-                    size="small"
-                    onClick={() => {
-                        setOpen(false);
-                    }}
-                >
-                    <CloseIcon fontSize='inherit' />
-                </IconButton>
-            }
-        >   
-                <div className="result__div">
-                    {results}
-                </div>
-        </Alert>
-        </Collapse>
+             <Alert action={
+                 <IconButton
+                     color="inherit"
+                     size="small"
+                     onClick={() => {
+                         setOpen(false);
+                     }}
+                 >
+                     <CloseIcon fontSize='inherit' />
+                 </IconButton>
+             }
+         >   
+                 <div className="result__div">
+                     {results}
+                 </div>
+         </Alert>
+         </Collapse>
         <Card className='upload__card'>
             {!file?
             <IconButton size='large' color="primary" aria-label="upload picture" component="label">
@@ -178,17 +188,23 @@ const UploadPage = () => {
             </IconButton>
             </>}
         </Card>
-        <div className='control__div'>
-            <div className='switch__div' >
-                <FormControlLabel  control={
-                    <Switch
-                    checked={switchCache}
-                    onChange={()=>setSwitchCache(!switchCache)}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    />} label="Cache Mode" />
-            </div>
-            <Button className="result__button"variant="outlined" onClick={handlePredict}>Predict</Button>
-        </div>
+         <div className='control__div'>
+             <div className='switch__div' >
+                 <FormControlLabel  control={
+                     <Switch
+                     checked={switchCache}
+                     onChange={()=>setSwitchCache(!switchCache)}
+                     inputProps={{ 'aria-label': 'controlled' }}
+                     />} label="Cache Mode" />
+             </div>
+             <Button className="result__button"variant="outlined" onClick={()=>{
+                setLoading(true);
+                handlePredict();
+             }}>
+                Predict
+            </Button>
+            {loading? <PendingOutlinedIcon fontSize='medium' className="pending__icon" />:null }
+         </div>
     </div>
   )
 }
