@@ -12,7 +12,8 @@ import { openDB } from 'idb';
 import { Alert, Collapse, Switch } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
-// import { performance } from 'node/perf_hooks'
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+
 
 const MODEL_PATH = "/model/model.json";
 const IMAGE_SIZE = 224;
@@ -31,13 +32,20 @@ const UploadPage = () => {
     const [loading, setLoading] = useState(false);
     // switchMode state
     const [switchCache, setSwitchCache] = useState(true)
+    const [timePer, setTimePer] = useState(null);
 
      useEffect(() => {
         const fetchModel = async() => {
             // check indexedDB
             if(('indexedDB' in window)){
                 try{
-                    setModel(await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY))
+                    const model_ = await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY)
+                    
+                    // warmup model
+                    let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
+                    prediction.dispose();
+
+                    setModel(model_)
                     try{
                         const db = await openDB(INDEXEDDB_DB, 1, );
                         await db.transaction(INDEXEDDB_STORE)
@@ -52,11 +60,21 @@ const UploadPage = () => {
                 catch(error){
                     console.log('Not found models, Loading and saving...')
                     const model_ = await tf.loadLayersModel(MODEL_PATH);
+                    
+                    // warmup model
+                    let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
+                    prediction.dispose();
+                    
                     setModel(model_);
                     await model_.save('indexeddb://' + INDEXEDDB_KEY);
                 }
             }else{
                 const model_ = await tf.loadLayersModel(MODEL_PATH);
+                
+                // warmup model
+                let prediction = tf.tidy(() => model_.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])));
+                prediction.dispose();
+                
                 setModel(model_)
             }
         }
@@ -114,15 +132,13 @@ const UploadPage = () => {
     }
 
     const predictUsingCache = async() => {
-        // const timeBegin = performance.now()
+        const timeBegin = performance.now()
 
         const imageData = await processImage()
         const probabilities =  await model.predict(imageData).data();
         const preds =  getTopKClasses(probabilities, TOPK_PREDICTIONS);
         
-        // const timeEnd = performance.now()
-        // console.log(timeEnd - timeBegin);
-
+        setTimePer(performance.now() - timeBegin)
         showResults(preds)
     }
 
@@ -131,7 +147,7 @@ const UploadPage = () => {
             if(switchCache){
                 predictUsingCache()
             }else{
-                // const timeBegin = performance.now()
+                const timeBegin = performance.now()
                 const formData = new FormData()
                 formData.append('file', file);
                 const options = {
@@ -141,10 +157,9 @@ const UploadPage = () => {
                 fetch("http://localhost:8000/uploadfile/",options)
                     .then((res) => res.json())
                     .then((result) => {
+                        setTimePer(performance.now() - timeBegin)
                         showResults(result.result)
                         setLoading(false)
-                    // const timeEnd = performance.now()
-                    // console.log(timeEnd - timeBegin);
                     })
             }
     }
@@ -165,7 +180,13 @@ const UploadPage = () => {
              }
          >   
                  <div className="result__div">
+                    <div>
                      {results}
+                    </div>
+                    <h2 style={{ alignSelf: 'center', marginLeft: 80 }} >
+                    <HourglassBottomIcon fontSize='small' style={{color: 'black', top: 20, marginRight: 10}} />
+                     {timePer?.toFixed(2)} ms
+                    </h2>
                  </div>
          </Alert>
          </Collapse>

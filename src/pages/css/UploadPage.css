@@ -41,7 +41,8 @@
 
 
 .result__container{
-    width: 80% !important;
+    max-width: 100% !important;
+    min-height: 50% !important;
     align-self: center;
 }
 
@@ -67,4 +68,12 @@
 
 .pending__icon{
     color: aliceblue !important;
+}
+
+.result__div{
+    display: flex;
+    flex-direction: row;
+    font-size: medium;
+    font-weight: bold;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
