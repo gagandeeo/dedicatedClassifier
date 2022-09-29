@@ -23,7 +23,7 @@ const UploadPage = () => {
     const [timePer, setTimePer] = useState(null);
 
     // state for controlling prediction mode
-    const [switchCache, setSwitchCache] = useState(true)
+    const [switchCache, setSwitchCache] = useState(false)
 
      useEffect(() => {
         const fetchModel = async() => {
@@ -42,7 +42,7 @@ const UploadPage = () => {
                 }
                 catch(error){
                     // If error here, assume that no models are saved hence save it to indexedDB
-                    window.alert('Loading and Saving Model...')
+                    window.alert('Loading model, this may take a few second if site is visited first time.\nRefresh page few times if not loaded properly')
                     const model_ = await tf.loadLayersModel(process.env.REACT_APP_MODEL_PATH);
                     
                     // warmup model

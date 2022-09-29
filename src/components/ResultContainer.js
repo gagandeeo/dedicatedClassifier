@@ -26,7 +26,7 @@ const ResultContainer = ({ open, setOpen, results, timePer }) => {
                     </div>
                     <h2 style={{ alignSelf: 'center', marginLeft: 80 }} >
                     <HourglassBottomIcon fontSize='small' style={{color: 'black', top: 20, marginRight: 10}} />
-                     {timePer?.toFixed(2)} ms
+                    {timePer? <>{timePer.toFixed(2)} ms </>: null}
                     </h2>
                  </div>
          </Alert>

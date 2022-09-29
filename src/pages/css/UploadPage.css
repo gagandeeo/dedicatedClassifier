@@ -1,9 +1,10 @@
 .upload__container{
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 120vh;
     align-items: center;
     justify-content: space-evenly;
+    zoom: 80%;
 }
 
 .MuiAlert-message.css-1pxa9xg-MuiAlert-message{
