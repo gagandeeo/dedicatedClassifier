@@ -198,10 +198,11 @@ const UploadPage = () => {
   return (
     <div className='upload__container'>
         {!modelLoaded? 
-            <div style={{ color: 'white', alignSelf: 'flex-end', marginRight: '10px' }}>
-                <CircularProgress color='success' />
+            <div style={{ fontFamily: 'sans-serif' ,  color: 'white', alignSelf: 'flex-end', marginRight: '10px' }}>
+                <CircularProgress color='primary' />
                 <h4>Loading Model...</h4>
                 <h4>Use non-cache mode instead</h4>
+                <h4>This will take few seconds for first time site visit only</h4>
             </div> : null }
         {/* Result */}
         <ResultContainer 
