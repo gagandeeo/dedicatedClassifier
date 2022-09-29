@@ -6,7 +6,7 @@ import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
 import './component.css'
 
 
-const Controller = ({ switchCache, setSwitchCache, loading, handlePredict, setLoading }) => {
+const Controller = ({ switchCache, setSwitchCache, loading, handlePredict, setLoading, modelLoaded }) => {
   return (
     <div className='control__div'>
         <div className='switch__div' >
@@ -14,8 +14,9 @@ const Controller = ({ switchCache, setSwitchCache, loading, handlePredict, setLo
                 <Switch
                 checked={switchCache}
                 onChange={()=>setSwitchCache(!switchCache)}
+                disabled={!modelLoaded}
                 inputProps={{ 'aria-label': 'controlled' }}
-                />} label="Cache Mode" />
+                ></Switch>} label="Cache Mode" />
         </div>
         <Button className="result__button"variant="outlined" onClick={()=>{
             setLoading(true);

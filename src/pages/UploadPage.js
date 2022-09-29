@@ -5,6 +5,7 @@ import { MODEL_CLASSES } from '../model/classes.js';
 import UploadCard from '../components/UploadCard.js';
 import Controller from '../components/Controller.js';
 import ResultContainer from '../components/ResultContainer.js';
+import CircularProgress from '@mui/material/CircularProgress';
 import './css/UploadPage.css'
 
 // Model utilities
@@ -15,7 +16,7 @@ const UploadPage = () => {
     // states of files and models
     const [file, setFile] = useState(null);
     const [model, setModel] = useState(null);
-
+    const [modelLoaded, setModelLoaded] = useState(false);
     // states for handling results
     const [results, setResults] = useState(null);
     const [open, setOpen] = useState(false);
@@ -39,10 +40,11 @@ const UploadPage = () => {
 
                     // save model
                     setModel(model_)
+                    setModelLoaded(true)
                 }
                 catch(error){
                     // If error here, assume that no models are saved hence save it to indexedDB
-                    window.alert('Loading model... Note:Cache method would work after 1-2 minutes')
+                    // window.alert('Loading model... Note:Cache method would work after 1-2 minutes')
                     const model_ = await tf.loadLayersModel(process.env.REACT_APP_MODEL_PATH);
                     
                     // warmup model
@@ -51,6 +53,7 @@ const UploadPage = () => {
                     
                     // save model
                     setModel(model_);
+                    setModelLoaded(true)
                     await model_.save('indexeddb://' + process.env.REACT_APP_INDEXEDDB_KEY);
                 }
             }else{
@@ -63,6 +66,7 @@ const UploadPage = () => {
                 
                 // save model
                 setModel(model_)
+                setModelLoaded(true)
             }
         }
 
@@ -193,6 +197,12 @@ const UploadPage = () => {
 
   return (
     <div className='upload__container'>
+        {!modelLoaded? 
+            <div style={{ color: 'white', alignSelf: 'flex-end', marginRight: '10px' }}>
+                <CircularProgress color='success' />
+                <h4>Loading Model...</h4>
+                <h4>Use non-cache mode instead</h4>
+            </div> : null }
         {/* Result */}
         <ResultContainer 
             open={open}
@@ -200,18 +210,19 @@ const UploadPage = () => {
             results={results}
             timePer={timePer} 
         />
-         {/* Upload Card */}
+        {/* Upload Card */}
         <UploadCard 
             file={file}
             handleImageChange={handleImageChange}
         />
         {/* Controller */}
-         <Controller 
+        <Controller 
             switchCache={switchCache}
             setSwitchCache={setSwitchCache}
             loading={loading}
             handlePredict={handlePredict}
             setLoading = {setLoading}
+            modelLoaded = {modelLoaded}
         />
     </div>
   )
