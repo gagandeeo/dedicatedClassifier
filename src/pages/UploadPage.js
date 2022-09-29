@@ -42,7 +42,7 @@ const UploadPage = () => {
                 }
                 catch(error){
                     // If error here, assume that no models are saved hence save it to indexedDB
-                    window.alert('Loading model... This may take a few minutes and reloads if site is visited first time')
+                    window.alert('Loading model... Note:Cache method would work after 1-2 minutes')
                     const model_ = await tf.loadLayersModel(process.env.REACT_APP_MODEL_PATH);
                     
                     // warmup model
