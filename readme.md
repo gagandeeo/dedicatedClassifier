@@ -1,5 +1,5 @@
 # Dedicated Object Classifier
-Live Application: 
+Live Application: https://zingy-jalebi-2df3ad.netlify.app/
 
 ## About
 - This Web-application uses machine model to identify object present in an image.
